@@ -35,24 +35,7 @@ module.exports.createUser = (req, res, next) => {
       }
     });
 };
-/*
-module.exports.getUser = (req, res, next) => {
-  User.findById(req.params.userId)
-    .orFail()
-    .then((user) => {
-      res.status(HTTP_STATUS_OK).send(user);
-    })
-    .catch((err) => {
-      if (err instanceof mongoose.Error.CastError) {
-        next(new BadRequestError(`Некорректный _id: ${req.params.userId}`));
-      } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        next(new NotFoundError(`Пользователь по указанному _id: ${req.params.userId} не найден`));
-      } else {
-        next(err);
-      }
-    });
-};
-*/
+
 module.exports.getUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => res.status(HTTP_STATUS_OK).send(user))
@@ -60,12 +43,14 @@ module.exports.getUser = (req, res, next) => {
 };
 
 module.exports.editUserData = (req, res, next) => {
-  const { name } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name }, { new: true, runValidators: true })
+  const { name, email } = req.body;
+  User.findByIdAndUpdate(req.user._id, { name, email }, { new: true, runValidators: true })
     .orFail()
     .then((user) => res.status(HTTP_STATUS_OK).send(user))
     .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
+      if (err.code === 11000) {
+        next(new ConflictError(`Пользователь с email: ${email} уже найден`));
+      } else if (err instanceof mongoose.Error.ValidationError) {
         next(new BadRequestError(err.message));
       } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
         next(new NotFoundError(`Пользователь по указанному _id: ${req.params.userId} не найден`));
@@ -80,7 +65,7 @@ module.exports.login = (req, res, next) => {
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, process.env.NODE_ENV === 'production' ? process.env.JWT_SECRET : 'dev-secret');
+      const token = jwt.sign({ _id: user._id }, process.env.NODE_ENV === 'production' ? process.env.JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
       res.send({ token });
     })
     .catch((err) => {

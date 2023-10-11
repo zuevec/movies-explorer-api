@@ -15,12 +15,13 @@ module.exports.createMovie = (req, res, next) => {
     year,
     description,
     image,
-    trailer,
+    trailerLink,
     nameRU,
     nameEN,
     thumbnail,
     movieId,
   } = req.body;
+  const { owner } = req.user._id;
 
   Movies.create({
     country,
@@ -29,11 +30,12 @@ module.exports.createMovie = (req, res, next) => {
     year,
     description,
     image,
-    trailer,
+    trailerLink,
     nameRU,
     nameEN,
     thumbnail,
     movieId,
+    owner,
   })
     .then((movie) => {
       Movies.findById(movie._id)
@@ -57,10 +59,10 @@ module.exports.createMovie = (req, res, next) => {
 };
 
 module.exports.deleteMovie = (req, res, next) => {
-  Movies.findById(req.params.movieId)
+  Movies.findById(req.params._id)
     .then((movie) => {
       if (!movie) {
-        throw new NotFoundError(`Карточка с указанным _id: ${req.params.movieId} не найден`);
+        throw new NotFoundError(`Карточка с указанным _id: ${req.params._id} не найден`);
       }
       if (!movie.owner.equals(req.user._id)) {
         throw new ForbiddenError('Карточка другого пользователя');
@@ -91,7 +93,8 @@ module.exports.deleteMovie = (req, res, next) => {
 };
 
 module.exports.getMovies = (req, res, next) => {
-  Movies.find({})
+  const owner = req.user._id;
+  Movies.find({ owner })
     .then((movies) => res.status(HTTP_STATUS_OK).send(movies))
     .catch(next);
 };
