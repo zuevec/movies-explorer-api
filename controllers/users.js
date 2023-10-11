@@ -35,7 +35,7 @@ module.exports.createUser = (req, res, next) => {
       }
     });
 };
-
+/*
 module.exports.getUser = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail()
@@ -51,6 +51,12 @@ module.exports.getUser = (req, res, next) => {
         next(err);
       }
     });
+};
+*/
+module.exports.getUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((user) => res.status(HTTP_STATUS_OK).send(user))
+    .catch(next);
 };
 
 module.exports.editUserData = (req, res, next) => {
