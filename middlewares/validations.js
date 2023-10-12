@@ -1,5 +1,5 @@
 const { celebrate, Joi } = require('celebrate');
-const urlPattern = require('../constant');
+const { urlPattern } = require('../constant');
 
 const signIn = celebrate({
   body: Joi.object().keys({
@@ -41,7 +41,7 @@ const createFilmValidation = celebrate({
 
 const filmIdValidation = celebrate({
   params: Joi.object().keys({
-    movieId: Joi.string().required().length(24).hex(),
+    _id: Joi.string().required().length(24).hex(),
   }),
 });
 

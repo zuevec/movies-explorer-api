@@ -8,6 +8,11 @@ const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
 const ConflictError = require('../errors/ConflictError');
 
+const {
+  EMAIL_REPLY,
+  USER_NOT_FOUND,
+} = require('../constant');
+
 module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.status(HTTP_STATUS_OK).send(users))
@@ -27,7 +32,7 @@ module.exports.createUser = (req, res, next) => {
     }))
     .catch((err) => {
       if (err.code === 11000) {
-        next(new ConflictError(`Пользователь с email: ${email} уже найден`));
+        next(new ConflictError(EMAIL_REPLY));
       } else if (err instanceof mongoose.Error.ValidationError) {
         next(new BadRequestError(err.message));
       } else {
@@ -49,11 +54,11 @@ module.exports.editUserData = (req, res, next) => {
     .then((user) => res.status(HTTP_STATUS_OK).send(user))
     .catch((err) => {
       if (err.code === 11000) {
-        next(new ConflictError(`Пользователь с email: ${email} уже найден`));
+        next(new ConflictError(EMAIL_REPLY));
       } else if (err instanceof mongoose.Error.ValidationError) {
         next(new BadRequestError(err.message));
       } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        next(new NotFoundError(`Пользователь по указанному _id: ${req.params.userId} не найден`));
+        next(new NotFoundError(USER_NOT_FOUND));
       } else {
         next(err);
       }

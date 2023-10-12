@@ -12,3 +12,11 @@ module.exports = {
   PORT_NUMBER,
   DB_URL,
 };
+
+module.exports.EMAIL_REPLY = 'Пользователь с таким email уже зарегистрирован';
+module.exports.USER_NOT_FOUND = 'Пользователь с указанным _id не найден';
+module.exports.FORBIDDEN_DELETE_MOVIE = 'Фильм другого пользователя';
+module.exports.MOVIE_NOT_FOUND = 'Фильм с указанным _id не найден';
+module.exports.MOVIE_ERROR_ID = 'Некорректный _id фильма';
+module.exports.USER_NOT_FOUND_EMAIL = 'Пользователь по указанному email не найден';
+module.exports.NOT_VALID_EMAIL = 'Неправильные почта или пароль';

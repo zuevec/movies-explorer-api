@@ -3,6 +3,12 @@ const { default: mongoose } = require('mongoose');
 const { HTTP_STATUS_OK, HTTP_STATUS_CREATED } = require('http2').constants;
 const Movies = require('../models/movies');
 
+const {
+  MOVIE_NOT_FOUND,
+  FORBIDDEN_DELETE_MOVIE,
+  MOVIE_ERROR_ID,
+} = require('../constant');
+
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
 const ForbiddenError = require('../errors/ForbiddenError');
@@ -43,7 +49,7 @@ module.exports.createMovie = (req, res, next) => {
         .then((data) => res.status(HTTP_STATUS_CREATED).send(data))
         .catch((err) => {
           if (err instanceof mongoose.Error.DocumentNotFoundError) {
-            next(new NotFoundError(`Фильм по указанному _id: ${req.params.movieId} не найден`));
+            next(new NotFoundError(MOVIE_NOT_FOUND));
           } else {
             next(err);
           }
@@ -62,20 +68,20 @@ module.exports.deleteMovie = (req, res, next) => {
   Movies.findById(req.params._id)
     .then((movie) => {
       if (!movie) {
-        throw new NotFoundError(`Карточка с указанным _id: ${req.params._id} не найден`);
+        throw new NotFoundError(MOVIE_NOT_FOUND);
       }
       if (!movie.owner.equals(req.user._id)) {
-        throw new ForbiddenError('Карточка другого пользователя');
+        throw new ForbiddenError(FORBIDDEN_DELETE_MOVIE);
       }
       Movies.deleteOne(movie)
         .orFail()
         .then(() => {
-          res.status(HTTP_STATUS_OK).send({ message: 'Карточка удалена' });
+          res.status(HTTP_STATUS_OK).send({ message: 'Фильм удален' });
         }).catch((err) => {
           if (err instanceof mongoose.Error.CastError) {
-            next(new BadRequestError(`Некорректный _id: ${req.params.userId}`));
+            next(new BadRequestError(MOVIE_ERROR_ID));
           } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
-            next(new NotFoundError(`Карточка с указанным _id: ${req.params.userId} не найден`));
+            next(new NotFoundError(MOVIE_NOT_FOUND));
           } else {
             next(err);
           }
@@ -83,9 +89,9 @@ module.exports.deleteMovie = (req, res, next) => {
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        next(new BadRequestError(`Некорректный _id: ${req.params.userId}`));
+        next(new BadRequestError(MOVIE_ERROR_ID));
       } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        next(new NotFoundError(`Карточка с указанным _id: ${req.params.userId} не найден`));
+        next(new NotFoundError(MOVIE_NOT_FOUND));
       } else {
         next(err);
       }
